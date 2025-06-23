@@ -1,0 +1,6 @@
+/**
+ * Enum ${NAME}
+ *
+ * @package ${NAMESPACE}
+ */
+ 

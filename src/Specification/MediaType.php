@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * This file is part of phayne-io/php-openapi and is proprietary and confidential.
+ * Unauthorized copying of this file, via any medium is strictly prohibited.
+ *
+ * @see       https://github.com/phayne-io/php-openapi for the canonical source repository
+ * @copyright Copyright (c) 2024-2025 Phayne Limited. (https://phayne.io)
+ */
+
+declare(strict_types=1);
+
+namespace Phayne\OpenAPI\Specification;
+
+use Override;
+use Phayne\OpenAPI\Exception\TypeErrorException;
+use Phayne\OpenAPI\SpecBaseObject;
+
+use function get_class;
+use function gettype;
+use function is_array;
+use function sprintf;
+
+/**
+ * Class MediaType
+ *
+ * Each Media Type Object provides schema and examples for the media type identified by its key.
+ *
+ * @link https://github.com/OAI/OpenAPI-Specification/blob/3.0.2/versions/3.0.2.md#mediaTypeObject
+ *
+ * @property Schema|Reference|null $schema
+ * @property mixed $example
+ * @property Example[]|Reference[] $examples
+ * @property Encoding[] $encoding
+ * @package Phayne\OpenAPI\Specification
+ */
+class MediaType extends SpecBaseObject
+{
+    public function __construct(array $data)
+    {
+        // instantiate Encoding by passing the schema for extracting default values
+        $encoding = $data['encoding'] ?? null;
+        unset($data['encoding']);
+
+        parent::__construct($data);
+
+        if (! empty($encoding)) {
+            foreach ($encoding as $property => $encodingData) {
+                if ($encodingData instanceof Encoding) {
+                    $encoding[$property] = $encodingData;
+                } elseif (is_array($encodingData)) {
+                    $schema = $this->schema->properties[$property] ?? null;
+                    // Don't pass the schema if it's still an unresolved reference.
+                    if ($schema instanceof Reference) {
+                        $encoding[$property] = new Encoding($encodingData);
+                    } else {
+                        $encoding[$property] = new Encoding($encodingData, $schema);
+                    }
+                } else {
+                    $givenType = gettype($encodingData);
+
+                    if ($givenType === 'object') {
+                        $givenType = get_class($encodingData);
+                    }
+
+                    throw new TypeErrorException(sprintf(
+                        'Encoding MUST be either array or Encoding object, "%s" given',
+                        $givenType
+                    ));
+                }
+            }
+            $this->encoding = $encoding;
+        }
+    }
+
+    #[Override]
+    protected function attributes(): array
+    {
+        return [
+            'schema' => Schema::class,
+            'example' => Type::ANY,
+            'examples' => [Type::STRING, Example::class],
+            'encoding' => [Type::STRING, Encoding::class],
+        ];
+    }
+
+    #[Override]
+    protected function performValidation(): void
+    {
+    }
+}

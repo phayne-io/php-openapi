@@ -1,0 +1,6 @@
+/**
+ * Trait ${NAME}
+ *
+ * @package ${NAMESPACE}
+ */
+ 

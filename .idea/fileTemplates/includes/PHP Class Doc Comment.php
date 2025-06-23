@@ -1,0 +1,6 @@
+/**
+ * Class ${NAME}
+ *
+ * @package ${NAMESPACE}
+ */
+ 

@@ -1,0 +1,6 @@
+/**
+ * Interface ${NAME}
+ *
+ * @package ${NAMESPACE}
+ */
+ 
